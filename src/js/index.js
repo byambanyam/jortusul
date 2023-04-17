@@ -3,6 +3,13 @@ import Search from "./model/Search";
 import { elements, renderLoader, clearLoader } from "./view/base";
 import * as searchView from "./view/searchView";
 import Recipe from "./model/Recipe";
+import list from "./model/list";
+import * as listView from "./view/listView";
+import {
+  renderRecipe,
+  clearRecipe,
+  highlightSelectedRecipe,
+} from "./view/recipeView";
 
 /**
  * Web app төлөв
@@ -14,6 +21,9 @@ import Recipe from "./model/Recipe";
 
 const state = {};
 
+/**
+ * Хайлтын контроллер = Model ==> Controller <== View
+ */
 const controlSearch = async () => {
   // 1) Вэбээс хайлтын түлхүүр үгийг гаргаж авна.
   const query = searchView.getInput();
@@ -52,5 +62,56 @@ elements.pageButtons.addEventListener("click", (e) => {
   }
 });
 
-const r = new Recipe(47746);
-r.getRecipe();
+/**
+ * Жорын контролллер
+ */
+const controlRecipe = async () => {
+  // 1) URL-аас ID-ийг салгаж
+  const id = window.location.hash.replace("#", "");
+  if (id) {
+    // 2) Жорын моделийг үүсгэж өгнө.
+    state.recipe = new Recipe(id);
+
+    // 3) UI дэлгэцийг бэлтгэнэ.
+    clearRecipe();
+    renderLoader(elements.recipeDiv);
+    highlightSelectedRecipe(id);
+
+    // 4) Жороо татаж авчирна.
+    await state.recipe.getRecipe();
+
+    // 5) Жорыг гүйцэтгэх хугацаа болон орцыг тооцоолно
+    clearLoader();
+    state.recipe.calcTime();
+    state.recipe.calcHuniiToo();
+
+    // 6) Жороо дэлгэцэнд гаргана
+    renderRecipe(state.recipe);
+  }
+};
+
+// window.addEventListener("hashchange", controlRecipe);
+// window.addEventListener("load", controlRecipe);
+["hashchange", "load"].forEach((e) =>
+  window.addEventListener(e, controlRecipe)
+);
+/**
+ * найрлагын контроллер
+ */
+const controlList = () => {
+  // nairlagnii model uusgen
+  state.list = new list();
+  listView.clearItems();
+  // ug modelruu odoo haragdaj baigaajornii buh nailagiig awch hiin
+  state.recipe.ingredients.forEach((n) => {
+    // tuhain nairlagiig modelruu hiiin
+    state.list.additem(n);
+    // tuhain nairlagaiig delgetsende gargana
+    listView.renderitem(n);
+  });
+};
+elements.recipeDiv.addEventListener("click", (e) => {
+  if (e.target.matches(".recipe__btn, .recipe__btn *")) {
+    controlList();
+  }
+});
