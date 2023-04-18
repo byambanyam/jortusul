@@ -101,17 +101,26 @@ const controlRecipe = async () => {
 const controlList = () => {
   // nairlagnii model uusgen
   state.list = new list();
+
   listView.clearItems();
   // ug modelruu odoo haragdaj baigaajornii buh nailagiig awch hiin
   state.recipe.ingredients.forEach((n) => {
     // tuhain nairlagiig modelruu hiiin
-    state.list.additem(n);
+    const item = state.list.additem(n);
     // tuhain nairlagaiig delgetsende gargana
-    listView.renderitem(n);
+    listView.renderitem(item);
   });
 };
 elements.recipeDiv.addEventListener("click", (e) => {
   if (e.target.matches(".recipe__btn, .recipe__btn *")) {
     controlList();
   }
+});
+elements.shoppingList.addEventListener("click", (e) => {
+  // click hiisen li n data item
+  const id = e.target.closest(".shopping__item").dataset.itemid;
+  // oldson id tai ortsiig ustgana
+  state.list.deleteItem(id);
+  // delgetsees iim idtei ortsiig ustgana
+  listView.deleteItem(id);
 });
